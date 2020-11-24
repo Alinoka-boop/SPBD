@@ -1,0 +1,32 @@
+SELECT  
+  users_id, half_free , package_freight
+FROM
+  tickets as t
+   LEFT JOIN carriages AS с ON с.id = t.id
+where с.captain ~ '^captain 36'
+GROUP BY users_id, half_free , package_freight
+ORDER BY t.users_id asc
+limit 10;
+
+
+\timing ON
+
+explain (analyze)
+
+SELECT  
+  users_id, half_free , package_freight
+FROM
+  tickets as t
+   LEFT JOIN carriages AS с ON с.id = t.id
+where с.captain ~ '^captain 36'
+GROUP BY users_id, half_free , package_freight
+ORDER BY t.users_id asc
+limit 10;
+
+
+
+
+
+
+
+

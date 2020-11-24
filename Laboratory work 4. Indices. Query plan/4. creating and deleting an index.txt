@@ -1,0 +1,3 @@
+create INDEX idx_сaptain1 on carriages(captain);
+
+drop index idx_сaptain1;
