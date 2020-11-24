@@ -1,0 +1,6 @@
+CREATE TABLE tickets1 PARTITION OF tickets
+  FOR VALUES IN ('true');
+
+CREATE TABLE tickets2 PARTITION OF tickets
+  FOR VALUES IN ('false');
+

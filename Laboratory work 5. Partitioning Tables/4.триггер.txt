@@ -1,0 +1,17 @@
+CREATE FUNCTION insert_tickets() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.half_free = 'true' THEN
+      INSERT INTO tickets1 SELECT NEW.*;
+    ELSEIF NEW.half_free = 'false' THEN
+      INSERT INTO tickets2 SELECT NEW.*;
+    ELSE
+      RAISE EXCEPTION 'incorrect half_free %',  NEW.id;
+    END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_half_free
+  BEFORE INSERT 
+  ON tickets
+  EXECUTE PROCEDURE insert_tickets();

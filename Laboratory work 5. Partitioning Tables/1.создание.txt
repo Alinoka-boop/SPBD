@@ -1,0 +1,86 @@
+﻿Бизнес требование: приложение должно управлять данными железнодорожного управления о вагонах поезда 
+и билетах в эти вагоны (свободные и проданные)
+
+Диаграмма вариантов использования
+
+Примечания. Данные о вагонах: номер вагона, тип вагона (купе, плацкарт, общий), 
+количество мест в вагоне (для купе - 40, для плацкарта - 60, для общего - 90), 
+количество свободных мест, фамилия и инициалы проводника, является ли вагоном для некурящих, 
+стоимость одного билета (для общего - 20000, для плацкарта - 30000, для купе - 45000,
+в вагоне для курящих стоимость увеличивается на 25%), общая выручка от продажи билетов. 
+Данные о билетах: вагон, номер места, детский ли, включается ли багаж (только если билет не детский), 
+стоимость (для детского билета стоимость уменьшается на 50%, если билет не детский, 
+то при наличии багажа стоимость увеличивается на 20%).
+
+
+
+SELECT 
+    pg_terminate_backend(pid) 
+FROM 
+    pg_stat_activity 
+WHERE 
+    pid <> pg_backend_pid()
+    AND datname = 'train'
+;
+
+DROP DATABASE train;
+CREATE DATABASE train;
+
+CREATE TABLE users (
+     id SERIAL PRIMARY KEY,
+     login VARCHAR(255) NOT NULL,
+     password VARCHAR(255) NOT NULL,
+     role VARCHAR(255) NOT NULL
+);
+
+INSERT INTO users (id, login, password, role) values (1, 'user', 'user', 'user');
+INSERT INTO users (id, login, password, role) values(2, 'cashier', 'cashier', 'cashier');
+INSERT INTO users (id, login, password, role) values(3, 'admin', 'admin','admin');
+
+SELECT *FROM users;
+
+CREATE TABLE carriages (
+    id SERIAL PRIMARY KEY,
+    number BIGINT NOT NULL,
+    type VARCHAR,
+    captain VARCHAR(50) NOT NULL,
+    smoking BOOLEAN NOT NULL
+) ;  
+
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 1, 1,'common', 'Тимофеев М.Ф.',true);
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 2, 2,'econom class', 'Поляков П.Е.',false);
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 3, 3,'econom class', 'Иванов П.Е.',true);
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 4 ,4 ,'coupe', 'Туров В.Э.',true);
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 5, 5,'coupe', 'Игнатьев З.М.',false);
+INSERT INTO carriages (id, number, type, captain, smoking) values ( 6, 6,'coupe', 'Игнатьев З.М.',false);
+
+
+SELECT *FROM carriages;
+
+
+CREATE TABLE tickets (
+     id SERIAL,
+     half_free BOOLEAN NOT NULL,
+     package_freight BOOLEAN NOT NULL
+) PARTITION BY LIST (half_free);
+ALTER TABLE tickets ADD carriage_id BIGINT NOT NULL REFERENCES carriages (id);
+ALTER TABLE tickets ADD users_id BIGINT NOT NULL REFERENCES users (id);
+
+
+
+INSERT INTO tickets (id, half_free, package_freight, carriage_id,users_id ) values (1, t, f, 6,1);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (2, f, f, 1,2);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (3, f, t, 6,3);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (4, t, f, 1,1);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (5, t, f, 2,3);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (6, f, f, 3,1);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (7, f, t, 3,2);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (8, t, f, 2,3);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (9, f, t, 2,1);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (10, f, f, 4,3);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (11, f, f, 5,2);
+INSERT INTO tickets (id, half_free, package_freight, carriage_id, users_id) values (12, f, t, 4,1);
+
+
+
+SELECT *FROM tickets;

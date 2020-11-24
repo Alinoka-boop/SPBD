@@ -1,0 +1,71 @@
+INSERT INTO users (login, password, role)
+SELECT
+  'login' || seq as login,
+  'password' || seq as password, 
+   (
+    CASE (RANDOM() * 2)::INT
+      WHEN 0 THEN 'Admin'
+      WHEN 1 THEN 'Kassir'
+      WHEN 2 THEN 'User'
+    END
+  ) AS role
+FROM GENERATE_SERIES(1, 100) seq;
+
+
+SELECT *FROM users;
+
+
+INSERT INTO carriages (number, type, captain, smoking)
+SELECT
+  floor(RANDOM() * 100 + 1) as number,
+  (
+    CASE (RANDOM() * 2)::INT
+      WHEN 0 THEN 'econom class'
+      WHEN 1 THEN 'common'
+      WHEN 2 THEN 'coupe'
+    END
+  ) AS type,
+  'captain ' || seq as captain,
+   (
+    CASE (RANDOM() * 1)::INT
+      WHEN 0 THEN 'yes'::boolean
+      WHEN 1 THEN 'no'::boolean
+    END
+  ) AS smoking
+FROM GENERATE_SERIES(1, 100) seq;
+
+SELECT *FROM carriages;
+
+
+INSERT INTO tickets(half_free, package_freight, carriage_id, users_id)
+SELECT
+   (
+    CASE (RANDOM() * 1)::INT
+      WHEN 0 THEN 'true'::boolean
+      WHEN 1 THEN 'false'::boolean
+    END
+  ) AS half_free,
+   (
+    CASE (RANDOM() * 1)::INT
+      WHEN 0 THEN 'yes'::boolean
+      WHEN 1 THEN 'no'::boolean
+    END
+  ) AS package_freight,
+  floor(RANDOM() * 100 + 1) as carriage_id,
+  floor(RANDOM() * 100 + 1) as  users_id
+FROM GENERATE_SERIES(1, 100) seq;
+
+SELECT *FROM tickets;
+
+
+
+
+
+
+
+
+
+
+
+
+
