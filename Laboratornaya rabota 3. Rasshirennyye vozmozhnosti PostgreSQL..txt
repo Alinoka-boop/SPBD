@@ -1,0 +1,187 @@
+1. Написать представление, которое будет выводить список пользователей и их средний чек
+для выполненных заказов(login пользователя, средний чек)
+
+Представления - это таблицы чье содержание выбирается или получается из других таблиц.
+Они работают в запросах и операторах DML точно также как и основные таблицы, но не содержат никаких собственных данных. 
+
+CREATE VIEW view_avg_price AS 
+SELECT
+    u.login as login,
+    AVG(o.price) as avg_price
+FROM users AS u
+  LEFT JOIN orders AS o ON o.user_id = u.id
+GROUP BY
+  u.login;
+
+2. Написать пользовательскую функцию, которая будет списывать сумму с вашего счета, если это возможно
+(входные параметры - login пользователя, сумма, возвращаемое значение - остаток на счете)
+
+
+CREATE TRIGGER создаёт новый триггер. Триггер будет связан с указанной таблицей,
+представлением или сторонней таблицей и будет выполнять заданную функцию имя_функции при определённых событиях.
+
+Триггер можно настроить так, чтобы он срабатывал до операции со строкой (до проверки ограничений и попытки выполнить INSERT, UPDATE или DELETE) 
+или после её завершения (после проверки ограничений и выполнения INSERT, UPDATE или DELETE), либо вместо операции (при добавлении, изменении и удалении строк в представлении).
+Если триггер срабатывает до или вместо события, он может пропустить операцию с текущей строкой, либо изменить добавляемую строку (только для операций INSERT и UPDATE).
+Если триггер срабатывает после события, он «видит» все изменения, включая результат действия других триггеров.
+
+create function pay_value (login varchar, value money) returns money as $ $ declare account_value money;
+
+begin
+select
+  account.value into account_value
+from
+  users as user
+  join accounts as account on account.user_id = user.id
+where
+  user.login = $ 1;
+
+if account_value < $ 2 then raise exception;
+
+else
+update
+  account
+set
+  accout.value = account_value - $ 2
+from
+  accounts
+  join users as user on account.user_id = user.id
+where
+  user.login = $ 1;
+
+return account_value - $ 2;
+
+end if;
+
+end;
+
+$ $ language plpgsql;
+
+
+3. Написать хранимую процедуру, которая будет рассчитывать сумму заказа пользователя и скидку на заказ,
+ исходя из стоимости доставки (если таковая имеется) и стоимости товаров в корзине.
+
+
+create function update_order_info (order_id bigserial) as $ $ 
+declare 
+order_price money,
+delivery_price money;
+
+begin
+select
+  sum(product_basket.price) into order_price,
+  delivery_record.price into delivery_price
+from
+  orders order
+  left join basket as product_basket on product_basket.order_id = order.id
+  left join delivery_orders as delivery_order on delivery_order.order_id = order.id
+  left join delivery as delivery_record on delivery_order.delivery_id = delivery_record.id
+where
+  order.id = $ 1;
+
+update
+  order
+set
+  order.price = order_price + delivery_price
+from
+  orders
+where
+  order.id = $ 1
+end;
+
+$ $ language plpgsql;
+
+
+4. Написать триггер, который будет пересчитывать сумму заказа пользователя и скидку на заказ,
+ при изменении корзины товаров в заказе.
+
+
+create function update_trigger() returns trigger as $ $ 
+begin
+  execute procedure update_order_info(NEW.id)
+  return NEW;
+end;
+
+$ $ language plpgsql;
+
+create trigger trigger_basket_update
+after insert or update
+  of basket on orders for each row
+execute procedure update_trigger();
+
+
+
+5.Написать триггер, который будет устанавливать статус заказа "Оплачен", 
+если заказ полностью оплачен, и списывать с остатков на складе то количество товара, которое было в заказе.
+
+create function update_orders() returns trigger as $$ 
+declare is_paid boolean;
+begin
+select
+  (order.price = sum(payment_order.value)) into is_paid
+from
+  orders order
+  right join payments_orders payment_order on payment_order.order_id = order.id
+where
+  order.id = NEW.id
+group by
+  order.id;
+
+if is_paid then
+  update
+    order
+  set
+    order.status = 'P'
+  from
+    orders
+  where
+    order.id = NEW.id;
+
+  update
+    product
+  set
+    product.quantity = product.quantity - paid_product_basket.quantity
+  from
+    products,
+    (
+      select
+        product_basket.*
+      from
+        basket product_basket
+      where
+        product_basket.order_id = NEW.id
+        and product_basket.product_id = product.id
+    ) as paid_product_basket;
+end if;
+
+return NEW;
+end;
+$$ language plpgsql;
+
+create trigger trigger_order_update
+after insert or update of payments_orders on orders 
+for each row
+  execute procedure update_orders();
+
+
+6.Написать запрос, используя оконную функцию, который для заданного пользователя (login) будет выводить прогресс
+по сумме его выполненных заказов (каждая строка должна содержать 3 столбца:
+login пользователя, сумму заказа и сумму заказов начиная с первого до текущего (прогрессирующая сумма)).
+
+
+
+Оконная функция выполняет вычисления для набора строк, некоторым образом связанных с текущей строкой.
+Можно сравнить её с агрегатной функцией, но, в отличие от обычной агрегатной функции, при использовании оконной функции несколько строк не группируются в одну,
+а продолжают существовать отдельно. Внутри же, оконная функция, как и агрегатная, может обращаться не только к текущей строке результата запроса.
+
+select
+  user.login as login,
+  order.price as price,
+  sum(order.price) over (
+    partition by order.id 
+  ) as sum
+from
+  orders as order
+  left join users as user on order.user_id = user.id
+order by
+  order.created_at asc;
