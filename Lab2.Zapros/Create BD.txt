@@ -1,0 +1,108 @@
+CREATE TABLE delivery
+(
+    id BIGINT PRIMARY KEY, 
+    name VARCHAR(255),
+    description TEXT,
+    price MONEY
+);
+ALTER TABLE delivery_orders ADD delivery_id BIGINT NOT NULL REFERENCES delivery (id);
+CREATE TABLE delivery
+(
+    id BIGINT PRIMARY KEY, 
+    name VARCHAR(255),
+    description TEXT,
+    price MONEY
+);
+CREATE TABLE orders
+(
+    id BIGINT PRIMARY KEY, 
+    status VARCHAR(1),
+    price MONEY,
+    discount MONEY,
+    create_at TIMESTAMP
+);
+ALTER TABLE delivery_orders ADD order_id BIGINT NOT NULL REFERENCES delivery (id);
+ALTER TABLE delivery_orders DROP COLUMN order_id;
+
+CREATE TABLE users
+(
+    id BIGINT PRIMARY KEY, 
+    login varchar(255),
+    password varchar(255),
+);
+
+ALTER TABLE orders ADD user_id BIGINT NOT NULL REFERENCES users (id);
+
+CREATE TABLE accounts
+(
+    id BIGINT PRIMARY KEY, 
+    value MONEY,
+    is_vip BOOLEAN,
+);
+ALTER TABLE accounts ADD user_id BIGINT NOT NULL REFERENCES users (id);
+
+
+CREATE TABLE payments_orders
+(
+    id BIGINT PRIMARY KEY, 
+    value MONEY,
+    from_account BOOLEAN,
+    create_at TIMESTAMP
+);
+
+ALTER TABLE payments_orders ADD order_id BIGINT NOT NULL REFERENCES orders (id);
+
+CREATE TABLE payments
+(
+    id BIGINT PRIMARY KEY, 
+    name VARCHAR(255),
+    description TEXT
+);
+ALTER TABLE payments_orders ADD payment_id BIGINT NULL REFERENCES payments (id);
+
+
+CREATE TABLE basket
+(
+    id BIGINT PRIMARY KEY, 
+    price MONEY,
+    discount MONEY,
+    quantity INT,
+    create_at TIMESTAMP
+);
+
+
+ALTER TABLE basket ADD order_id BIGINT NULL REFERENCES orders (id);
+
+
+CREATE TABLE customers
+(
+    id BIGINT PRIMARY KEY, 
+    create_at TIMESTAMP
+);
+
+ALTER TABLE basket ADD customer_id BIGINT NOT NULL REFERENCES customers (id);
+ALTER TABLE customers ADD user_id BIGINT NULL REFERENCES users (id);
+
+
+CREATE TABLE products
+(
+    id BIGINT PRIMARY KEY, 
+    name VARCHAR (255),
+    price MONEY,
+    quantity INT,
+    discount MONEY
+);
+
+ALTER TABLE basket ADD product_id BIGINT NOT NULL REFERENCES products (id);
+
+CREATE TABLE categories
+(
+    id BIGINT PRIMARY KEY, 
+    name VARCHAR (255)
+);
+ALTER TABLE products ADD category_id BIGINT NOT NULL REFERENCES categories (id);
+
+
+INSERT INTO accounts (value, is_vip)
+values ('423.07', true);
+
