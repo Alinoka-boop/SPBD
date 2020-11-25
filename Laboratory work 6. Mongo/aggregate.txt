@@ -1,0 +1,37 @@
+﻿1. Выборка всех данных, фильтрация по конкретному полю, массиву, встроенному объекту.
+	db.users.aggregate([], {comment: "Выборка всех данных"}).pretty()
+	db.users.aggregate([{ $match: {"_id": 2}}], {comment:  "Выборка по конкретному полю"}).pretty()
+	db.users.aggregate([{$match: {"type": "coupe"}}], {comment:  "Выборка по массиву"}).pretty()
+	db.user.aggregate([{$match: {"user_date.photo": "C:\Users\ASUS\Desktop\JS\MongoDB\ЛАБА № 6\1.jpg"}], {comment: "Выборка по встроенному объекту"}).pretty()
+
+2. Выборка в интервале, выборка из заданного списка значений.
+	db.users.aggregate([{$skip:2}, {$limit:3}], {comment: "Выборка всех данных"}).pretty()
+	
+3. Выборка с использованием регулярных выражений.
+	db.carriages.aggregate([{$match: {captain:/Т/}], {comment: " agr Выборка с использование регулярных выражений"})
+
+4. Выборка данных за конкретный период времени, на сегодняшний день, за последний месяц.
+	db.tickets.aggregate([{$match: {"date_issue": {$gte: ISODate("2000-01-01"), $lte: ISODate("2019-01-01")}}}], {comment: "Выборка за конкретный период времени"}).pretty()
+	n = new Date()
+	db.tickets.aggregate([{$match: {"date_issue": {$gte: new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0), $lte: new Date()}}}], {comment: "Выборка за сегодняшний день"}).pretty()
+	m = n.getMonth() 
+	db.tickets.aggregate([{$match: {"date_issue": {$gte: new Date(n.getFullYear(), m, 1, 0, 0, 0), $lt: new Date(n.getFullYear(), m+1, 1, 0, 0, 0)}}}], {comment: "Выборка за последний месяц"}).pretty()
+
+5. Выборка данных из нескольких таблиц.
+	db.users.aggregate([{$lookup: {from: "tickets", localField: "_id", foreignField: "user_id", as: "admin"}}], {comment: "Выборка данных из нескольких таблиц"}).pretty()
+
+6. Выборка из нескольких таблиц с фильтрацией.
+	db.users.aggregate([{$lookup: {from: "tickets", localField: "_id", foreignField: "user_id", as: "admin"}}, {$match: { "user_id": 1}}], {comment: "Выборка данных из нескольких таблиц c фильтрацией"}).pretty()
+7. Выборка ограниченного набора полей.
+	db.users.aggregate([{$project:{login: 1, _id:0}}], {comment: "Выборка ограниченного набора полей"})
+
+8. Сортировка по 1 полю, по нескольким полям.
+	db.carriages.aggregate({$sort: {"type" : 1}})
+
+9. Вывод данных с n-ого по m-ый номер.
+	n = 2
+        m = 6
+        db.tickets.aggregate([{$skip:(n-1)}, {$limit: m-n+1}], {comment:  "Выборка в интервале от n до m"})
+
+10. Написать запрос, который объединяет 1-9 пункты.
+	db.users.aggregate([{$match: {"user_date.dob": {$gte: ISODate("2000-01-01"), $lte: ISODate("2021-01-01")}}}, {$project:{_id: 0, login: 0, password: 0, user_date: 0}}, {$skip:1}, {$limit:1}, {$sort: {"role": 1}}]).pretty()
