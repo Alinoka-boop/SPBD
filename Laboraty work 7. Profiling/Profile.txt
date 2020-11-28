@@ -1,0 +1,31 @@
+db.setProfilingLevel(2)
+
+op, тип операции(insert, query, update, remove, getmore, command)
+ns, коллекци€(а точнее namespace), над которой производитс€ операци€
+millis, врем€ выполнени€ операции в миллисекундах
+ts, врем€(timestamp) операции. Ѕольшого значени€ это не имеет, но это дата окончани€ выполнени€ операции.
+client, IP-адрес или им€ хоста, с которого была отправлена команда
+user, авторизованный пользователь, который выполнил запрос. ≈сли вы не используете авторизацию, то в профайлер будет записана пуста€ строка.
+
+
+db.system.profile.find().pretty()
+
+ќтключение профилировани€
+db.setProfilingLevel(0)
+
+db.ticket.getIndexes()
+
+
+1  - db.ticket.createIndex({"user_id" : 1})
+
+
+2 -  db.ticket.createIndex({"user_id" : 1, "_id" : 1})
+
+
+3 - db.ticket.createIndex( { _id: "hashed" } )
+
+
+
+дл€ удалени€ индекса:
+db.ticket.dropIndex("user_id")
+
