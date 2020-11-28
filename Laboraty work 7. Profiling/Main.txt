@@ -1,0 +1,3 @@
+load("C:/mongodb/data/db/scripts/random_user.js")
+load("C:/mongodb/data/db/scripts/random_poezd.js")
+load("C:/mongodb/data/db/scripts/random_ticket.js")
